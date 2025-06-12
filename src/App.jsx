@@ -1,211 +1,115 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
-import { Formik, Form } from "formik";
-import * as Yup from "yup";
+
 import {
-  Button,
-  TextField,
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+  Link,
+} from "react-router-dom";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  CssBaseline,
   Box,
-  Stepper,
-  Step,
-  StepLabel,
+  Button,
+  Stack,
 } from "@mui/material";
+import Home from "./pages/Home";
+import ProductGroup from "./pages/ProductGroup";
+import ProductDetail from "./pages/ProductDetail";
+import ProductDrawer from "./components/ProductDrawer";
+import Registration from "./pages/Registration";
+import Login from "./pages/Login";
 
-const validationSchema = [
-  Yup.object({
-    firstName: Yup.string()
-      .required("Обов'язкове поле")
-      .min(3, "Мінімум 3 символи"),
-    lastName: Yup.string().required("Обов'язкове поле"),
-  }),
-  Yup.object({
-    email: Yup.string().email("Некоректний email").required("Обов'язкове поле"),
-    phone: Yup.string()
-      .matches(/^\+?\d{10,15}$/, "Некоректний номер телефону")
-      .required("Обов'язкове поле"),
-  }),
-  Yup.object({
-    password: Yup.string()
-      .min(6, "Мінімум 6 символів")
-      .required("Обов'язкове поле"),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref("password"), null], "Паролі мають співпадати")
-      .required("Обов'язкове поле"),
-  }),
-];
+const drawerWidth = 240;
 
-const Step1 = ({ handleChange, values, errors, touched }) => (
-  <Box>
-    <TextField
-      fullWidth
-      name="firstName"
-      label="Ім'я"
-      margin="normal"
-      onChange={handleChange}
-      value={values.firstName}
-      error={touched.firstName && Boolean(errors.firstName)}
-      helperText={touched.firstName && errors.firstName}
-    />
-    <TextField
-      fullWidth
-      name="lastName"
-      label="Прізвище"
-      margin="normal"
-      onChange={handleChange}
-      value={values.lastName}
-      error={touched.lastName && Boolean(errors.lastName)}
-      helperText={touched.lastName && errors.lastName}
-    />
-  </Box>
-);
+function LayoutWithDrawer({ children }) {
+  return (
+    <Box sx={{ display: "flex" }}>
+      <ProductDrawer />
+      <Box component="main" sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}px` }}>
+        <Toolbar />
+        {children}
+      </Box>
+    </Box>
+  );
+}
 
-const Step2 = ({ handleChange, values, errors, touched }) => (
-  <Box>
-    <TextField
-      fullWidth
-      name="email"
-      label="Email"
-      margin="normal"
-      onChange={handleChange}
-      value={values.email}
-      error={touched.email && Boolean(errors.email)}
-      helperText={touched.email && errors.email}
-    />
-    <TextField
-      fullWidth
-      name="phone"
-      label="Телефон"
-      margin="normal"
-      onChange={handleChange}
-      value={values.phone}
-      error={touched.phone && Boolean(errors.phone)}
-      helperText={touched.phone && errors.phone}
-    />
-  </Box>
-);
-
-const Step3 = ({ handleChange, values, errors, touched }) => (
-  <Box>
-    <TextField
-      fullWidth
-      type="password"
-      name="password"
-      label="Пароль"
-      margin="normal"
-      onChange={handleChange}
-      value={values.password}
-      error={touched.password && Boolean(errors.password)}
-      helperText={touched.password && errors.password}
-    />
-    <TextField
-      fullWidth
-      type="password"
-      name="confirmPassword"
-      label="Підтвердити пароль"
-      margin="normal"
-      onChange={handleChange}
-      value={values.confirmPassword}
-      error={touched.confirmPassword && Boolean(errors.confirmPassword)}
-      helperText={touched.confirmPassword && errors.confirmPassword}
-    />
-  </Box>
-);
-
-const steps = ["Персональні дані", "Контактна інформація", "Пароль"];
-
-const App = () => {
-  const [step, setStep] = useState(0);
+function AppRoutes() {
+  const location = useLocation();
+  const isProductRoute = location.pathname.startsWith("/products");
 
   return (
-    <Formik
-      initialValues={{
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        password: "",
-        confirmPassword: "",
-      }}
-      validationSchema={validationSchema[step]}
-      onSubmit={(values) => console.log("Submitted:", values)}
-    >
-      {({
-        handleSubmit,
-        handleChange,
-        values,
-        errors,
-        touched,
-        validateForm,
-        setTouched,
-      }) => (
-        <Form onSubmit={handleSubmit}>
-          <Stepper activeStep={step} alternativeLabel>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-
-          {step === 0 && (
-            <Step1
-              handleChange={handleChange}
-              values={values}
-              errors={errors}
-              touched={touched}
+    <>
+      {isProductRoute ? (
+        <LayoutWithDrawer>
+          <Routes>
+            <Route
+              path="/products/:group/:product"
+              element={<ProductDetail />}
             />
-          )}
-          {step === 1 && (
-            <Step2
-              handleChange={handleChange}
-              values={values}
-              errors={errors}
-              touched={touched}
-            />
-          )}
-          {step === 2 && (
-            <Step3
-              handleChange={handleChange}
-              values={values}
-              errors={errors}
-              touched={touched}
-            />
-          )}
-
-          <Box display="flex" justifyContent="space-between" mt={2}>
-            {step > 0 && (
-              <Button variant="contained" onClick={() => setStep(step - 1)}>
-                Назад
-              </Button>
-            )}
-            {step < steps.length - 1 ? (
-              <Button
-                variant="contained"
-                onClick={async () => {
-                  setTouched({
-                    firstName: true,
-                    lastName: true,
-                    email: true,
-                    phone: true,
-                    password: true,
-                    confirmPassword: true,
-                  });
-                  const errors = await validateForm();
-                  if (Object.keys(errors).length === 0) setStep(step + 1);
-                }}
-              >
-                Далі
-              </Button>
-            ) : (
-              <Button type="submit" variant="contained">
-                Завершити
-              </Button>
-            )}
-          </Box>
-        </Form>
+            <Route path="/products/:group" element={<ProductGroup />} />
+          </Routes>
+        </LayoutWithDrawer>
+      ) : (
+        <Box component="main" sx={{ p: 3 }}>
+          <Toolbar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/registration" element={<Registration />} />
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </Box>
       )}
-    </Formik>
+    </>
   );
-};
+}
+
+function Navigation() {
+  return (
+    <Stack direction="row" spacing={2} sx={{ ml: 3 }}>
+      <Button color="inherit" component={Link} to="/">
+        Home
+      </Button>
+      <Button color="inherit" component={Link} to="/products/electronics">
+        Products
+      </Button>
+      <Button color="inherit" component={Link} to="/registration">
+        Registration
+      </Button>
+      <Button color="inherit" component={Link} to="/login">
+        Login
+      </Button>
+    </Stack>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <CssBaseline />
+      <AppBar
+        position="fixed"
+        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      >
+        <Toolbar>
+          <Typography
+            variant="h6"
+            noWrap
+            component={Link}
+            to="/"
+            style={{ color: "white", textDecoration: "none" }}
+          >
+            Vite React MUI Shop
+          </Typography>
+          <Navigation />
+        </Toolbar>
+      </AppBar>
+      <AppRoutes />
+    </Router>
+  );
+}
 
 export default App;
